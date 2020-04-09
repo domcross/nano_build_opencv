@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # 2019 Michael de Gans
+# 2020 domcross - changes for non-interactive run (in Dockerfile), disable Python2 support
 
 set -e
 
@@ -18,19 +19,7 @@ else
 fi
 
 cleanup () {
-# https://stackoverflow.com/questions/226703/how-do-i-prompt-for-yes-no-cancel-input-in-a-linux-shell-script
-    while true ; do
-        echo "Do you wish to remove temporary build files in /tmp/build_opencv ? "
-        if ! [[ "$1" -eq "--test-warning" ]] ; then
-            echo "(Doing so may make running tests on the build later impossible)"
-        fi
-        read -p "Y/N " yn
-        case ${yn} in
-            [Yy]* ) rm -rf /tmp/build_opencv ; break;;
-            [Nn]* ) exit ;;
-            * ) echo "Please answer yes or no." ;;
-        esac
-    done
+    rm -rf /tmp/build_opencv
 }
 
 setup () {
@@ -91,20 +80,27 @@ install_dependencies () {
         libx264-dev \
         pkg-config \
         python-dev \
-        python-numpy \
         python3-dev \
-        python3-numpy \
-        python3-matplotlib \
         qv4l2 \
         v4l-utils \
         v4l2ucp \
         zlib1g-dev
+        
+        # don't install python packages with apt - they are mostly outdated
+
+        #python-numpy \
+        #python3-numpy \
+        #python3-matplotlib \
+        #python2 -m pip install -U pip 
+        python3 -m pip install -U pip 
+        #python2 -m pip install numpy 
+        python3 -m pip install numpy matplotlib
 }
 
 configure () {
     local CMAKEFLAGS="
         -D BUILD_EXAMPLES=OFF
-        -D BUILD_opencv_python2=ON
+        -D BUILD_opencv_python2=OFF
         -D BUILD_opencv_python3=ON
         -D CMAKE_INSTALL_PREFIX=${PREFIX}
         -D CMAKE_BUILD_TYPE=RELEASE
@@ -175,7 +171,8 @@ main () {
         sudo make install
     fi
 
-    cleanup --test-warning
+    # cleanup --test-warning
+    cleanup
 
 }
 
