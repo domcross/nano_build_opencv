@@ -149,7 +149,7 @@ main () {
 
     # prepare for the build:
     setup
-    install_dependencies
+    #install_dependencies
     git_source ${VER}
 
     if [[ ${DO_TEST} ]] ; then
